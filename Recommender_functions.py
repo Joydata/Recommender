@@ -59,9 +59,9 @@ def predict(reviews,own_reviews):
 def recommend(reviews,own_reviews,how_many):
     
     own_reviews_array=np.array(own_reviews)
-    own_rated = own_reviews_array==own_reviews_array
+    own_rated = (own_reviews_array==own_reviews_array).transpose()
     Predictions = predict(reviews,own_reviews)
-    Predictions_df=pd.DataFrame(Predictions*~own_rated,columns=reviews.columns,index=['Preds']).transpose()
+    Predictions_df=pd.DataFrame(Predictions*~own_rated)
     return(Predictions_df.sort_values(by='Preds',ascending=False)[:how_many])
 
 def split(reviews,ratio):

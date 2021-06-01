@@ -3,6 +3,26 @@ import numpy as np
 import random
 
 def predict(reviews,own_reviews):
+    """Predicts a key-user ratings of items by cosine similarity method.
+
+    Parameters
+    ----------
+    reviews : pandas.DataFrame
+        The DataFrame containing several user's ratings of some items.
+        Must be of shape (n_users,n_items)
+    own_reviews : pandas.DataFrame
+        The DataFrame containing the key user's ratings of some items.
+        Must be of shape (1,n_items)
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the key user's ratings predictions of all the items.
+        Shape (n_items,1)
+        Items already rated by the key user in own_reviews parameter are not predicted
+        but kept from the original DataFrame.
+    """
+    
     own_reviews_array=np.array(own_reviews)
     own_rated = own_reviews_array==own_reviews_array
     
@@ -57,6 +77,25 @@ def predict(reviews,own_reviews):
     return Predictions_df
 
 def recommend(reviews,own_reviews,how_many):
+    """Recommends a few items based on the predicted ratings of the key-user
+
+    Parameters
+    ----------
+    reviews : pandas.DataFrame
+        The DataFrame containing several user's ratings of some items.
+        Must be of shape (n_users,n_items)
+    own_reviews : pandas.DataFrame
+        The DataFrame containing the key user's ratings of some items.
+        Must be of shape (1,n_items)
+    how_many : int
+        The number of items to be recommended.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the recommendations with their associated rating predictions.
+        Shape (how_many,2)
+    """
     
     own_reviews_array=np.array(own_reviews)
     own_rated = (own_reviews_array==own_reviews_array).transpose()
@@ -65,15 +104,61 @@ def recommend(reviews,own_reviews,how_many):
     return(Predictions_df.sort_values(by='Preds',ascending=False)[:how_many])
 
 def split(reviews,ratio):
-    total_size=len(reviews.index)
-    test_size=int(total_size*ratio)
-    train_set = random.sample(list(reviews.index),total_size-test_size)
+    """Splits randomly a dataset into two, for model evaluation purpose.
+
+    Parameters
+    ----------
+    reviews : pandas.DataFrame
+        The DataFrame containing several user's ratings of some items.
+        Must be of shape (n_users,n_items)
+    ratio : float
+        The ratio of the reviews from the parameter DataFrame to be included
+        in the testing dataset
+
+    Returns
+    -------
+    training_df : pandas.DataFrame
+        The first returned DataFrame, of shape (n_users - int(ratio * n_users)),n_items)
+    testing_df : pandas.DataFrame
+        The second returned DataFrame, of shape (int(ratio * n_users),n_items)
+    """
+    
+    n_users=len(reviews.index)
+    test_size=int(n_users*ratio)
+    train_set = random.sample(list(reviews.index),n_users-test_size)
     test_set = set(reviews.index) - set(train_set)
     training_df = reviews.loc[train_set,:]
     test_df = reviews.loc[test_set,:]
     return training_df, test_df
 
 def evaluate(train_df,test_df):
+    """Evaluates the accuracy of the predict function on a test dataset
+
+    Parameters
+    ----------
+    train_df : pandas.DataFrame
+        The training DataFrame containing several user's ratings of some items
+        used to train the prediction model.
+        Must be of shape (n_train_users,n_items)
+    test_df : pandas.DataFrame
+        The testing DataFrame containing several user's ratings of some items
+        used to evaluate the predictions accuracy
+        Must be of shape (n_test_users,n_items)
+
+    Returns
+    -------
+    (mean_err, max_err, n_eval)
+    mean_err : float
+        The average absolute error between the predictions and the ratings contained in
+        test_df
+    max_err : float
+        The maximum absolute error between the predictions and the ratings contained in
+        test_df
+    n_eval : int
+        The total number of ratings contained in test_df on which the prediction error
+        has been computed
+    """
+    
     n_eval=0
     err_acc=0
     max_err = 0

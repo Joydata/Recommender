@@ -14,7 +14,7 @@ n_users = reviews.shape[0]
 movies_idx = reviews.columns 
 users_idx = reviews.index
 
-#Cosine similarity betwee movies
+#Cosine similarity between movies
 #https://learning.oreilly.com/library/view/practical-recommender-systems/9781617292705/kindle_split_018.html
 
 # Calculating user's average rating : user_mean

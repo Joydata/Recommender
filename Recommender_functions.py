@@ -113,25 +113,25 @@ def split(reviews,ratio):
         Must be of shape (n_users,n_items)
     ratio : float
         The ratio of the reviews from the parameter DataFrame to be included
-        in the testing dataset
+        in the evaluation dataset
 
     Returns
     -------
     training_df : pandas.DataFrame
         The first returned DataFrame, of shape (n_users - int(ratio * n_users)),n_items)
-    testing_df : pandas.DataFrame
+    eval_df : pandas.DataFrame
         The second returned DataFrame, of shape (int(ratio * n_users),n_items)
     """
     
     n_users=len(reviews.index)
-    test_size=int(n_users*ratio)
-    train_set = random.sample(list(reviews.index),n_users-test_size)
+    eval_size=int(n_users*ratio)
+    train_set = random.sample(list(reviews.index),n_users-eval_size)
     test_set = set(reviews.index) - set(train_set)
     training_df = reviews.loc[train_set,:]
-    test_df = reviews.loc[test_set,:]
-    return training_df, test_df
+    eval_df = reviews.loc[test_set,:]
+    return training_df, eval_df
 
-def evaluate(train_df,test_df):
+def evaluate(train_df,eval_df):
     """Evaluates the accuracy of the predict function on a test dataset
 
     Parameters
@@ -139,37 +139,38 @@ def evaluate(train_df,test_df):
     train_df : pandas.DataFrame
         The training DataFrame containing several user's ratings of some items
         used to train the prediction model.
-        Must be of shape (n_train_users,n_items)
-    test_df : pandas.DataFrame
-        The testing DataFrame containing several user's ratings of some items
-        used to evaluate the predictions accuracy
-        Must be of shape (n_test_users,n_items)
+        Must be of shape (n_train_users,n_items).
+    eval_df : pandas.DataFrame
+        The evaluation DataFrame containing several user's ratings of some items
+        used to evaluate the predictions accuracy.
+        Must be of shape (n_test_users,n_items).
 
     Returns
     -------
     (mean_err, max_err, n_eval)
     mean_err : float
         The average absolute error between the predictions and the ratings contained in
-        test_df
+        eval_df
     max_err : float
         The maximum absolute error between the predictions and the ratings contained in
-        test_df
+        eval_df
     n_eval : int
-        The total number of ratings contained in test_df on which the prediction error
+        The total number of ratings contained in eval_df on which the prediction error
         has been computed
     """
     
     n_eval=0
     err_acc=0
     max_err = 0
+    max_rating = max(train_df.max(axis=1))
     
-    for i in range(len(test_df.index)):
+    for i in range(len(eval_df.index)):
 
-        print(i,' / ',len(test_df.index))
-        test_reviews=test_df.iloc[i]
+        print(f'evaluating model on user {i+1} / {len(eval_df.index)+1}')
+        test_reviews=eval_df.iloc[i]
         rated_dramas = test_reviews[~test_reviews.isna()].index
         for drama in rated_dramas:
-            test_reviews_for_evaluation = test_df.iloc[[i]].copy()
+            test_reviews_for_evaluation = eval_df.iloc[[i]].copy()
             test_reviews_for_evaluation[drama] = np.nan
             predictions = predict(train_df,test_reviews_for_evaluation).transpose()
             if predictions[drama][0]==predictions[drama][0]:
@@ -181,4 +182,4 @@ def evaluate(train_df,test_df):
 
 
     mean_err = err_acc / n_eval
-    return mean_err, max_err, n_eval
+    return mean_err, max_err, n_eval, max_rating

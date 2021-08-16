@@ -2,6 +2,7 @@ from Recommender_functions import recommend
 import sys
 import pandas as pd
 
+
 if __name__ == "__main__":
     reviews_arg = pd.read_csv(sys.argv[1], sep = ',', index_col = 0)
     own_reviews_arg = pd.read_csv(sys.argv[2], sep = ',', index_col = 0)
